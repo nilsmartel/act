@@ -9,7 +9,13 @@ lazy_static! {
 #[derive(Default)]
 struct StateTree {
     state: State,
-    children: Vec<State>,
+
+    /// When some component uses state, it's subcomponents will get their own state, which can be
+    /// found here
+    children: Vec<StateTree>,
+
+    /// pointer to the currently selected sub state.
+    cursor: usize,
 }
 
 impl StateTree {
@@ -18,7 +24,7 @@ impl StateTree {
             return &self.state;
         }
 
-        self.get_state(&cursor[1..])
+        self.children[cursor[0]].get_state(&cursor[1..])
     }
 }
 
