@@ -39,10 +39,10 @@ mod tests {
 
         let mut hooks = super::Hooks::default();
 
-        let (a, _set_a) = hooks.use_state("what");
-        let (b, _set_b) = hooks.use_state(123);
-        let (c, _set_c) = hooks.use_state(3.145);
-        let (d, _set_d) = hooks.use_state(true);
+        let (a, _) = hooks.use_state("what");
+        let (b, _) = hooks.use_state(123);
+        let (c, _) = hooks.use_state(3.145);
+        let (d, _) = hooks.use_state(true);
 
         assert_eq!(a, "möp");
         assert_eq!(b, 314);
