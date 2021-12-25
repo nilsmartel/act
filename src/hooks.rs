@@ -2,6 +2,55 @@ use lazy_static::lazy_static;
 use std::any::Any;
 use std::sync::{Mutex, MutexGuard, RwLock};
 
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn recover_state() {
+        let mut hooks = super::Hooks::default();
+        let (_, _) = hooks.use_state("what");
+        let (_, _) = hooks.use_state(123);
+        let (_, _) = hooks.use_state(3.145);
+        let (_, _) = hooks.use_state(true);
+
+        let mut hooks = super::Hooks::default();
+
+        let (a, _) = hooks.use_state("no");
+        let (b, _) = hooks.use_state(1231);
+        let (c, _) = hooks.use_state(3.14325);
+        let (d, _) = hooks.use_state(false);
+
+        assert_eq!(a, "what");
+        assert_eq!(b, 123);
+        assert_eq!(c, 3.145);
+        assert_eq!(d, true);
+    }
+
+    #[test]
+    fn set_state() {
+        let mut hooks = super::Hooks::default();
+        let (_, set_a) = hooks.use_state("what");
+        let (_, set_b) = hooks.use_state(123);
+        let (_, set_c) = hooks.use_state(3.145);
+        let (_, set_d) = hooks.use_state(true);
+        set_a("möp");
+        set_b(314);
+        set_c(0.0);
+        set_d(false);
+
+        let mut hooks = super::Hooks::default();
+
+        let (a, _set_a) = hooks.use_state("what");
+        let (b, _set_b) = hooks.use_state(123);
+        let (c, _set_c) = hooks.use_state(3.145);
+        let (d, _set_d) = hooks.use_state(true);
+
+        assert_eq!(a, "möp");
+        assert_eq!(b, 314);
+        assert_eq!(c, 0.0);
+        assert_eq!(d, false);
+    }
+}
+
 lazy_static! {
     static ref STATE_TREE: Mutex<StateTree> = Mutex::new(StateTree::default());
 }
@@ -55,11 +104,14 @@ impl State {
 
         // retrieve value from state
         let state = self.registers.read().expect("to read value from state");
-        state[index].downcast_ref::<T>().expect(&format!(
-            "state hook #{} to be of type {}",
-            index,
-            std::any::type_name::<T>()
-        )).clone()
+        state[index]
+            .downcast_ref::<T>()
+            .expect(&format!(
+                "state hook #{} to be of type {}",
+                index,
+                std::any::type_name::<T>()
+            ))
+            .clone()
     }
 }
 
