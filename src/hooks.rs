@@ -1,5 +1,5 @@
-use anybox::AnyBox;
 use lazy_static::lazy_static;
+use std::any::Any;
 use std::sync::{Mutex, MutexGuard, RwLock};
 
 lazy_static! {
@@ -28,6 +28,7 @@ impl StateTree {
     }
 }
 
+type AnyBox = Box<dyn Any + Send>;
 #[derive(Default)]
 struct State {
     /// each state holds multible state registers that can be retrieved one after another
@@ -37,7 +38,7 @@ struct State {
 impl State {
     fn use_state<T>(&self, value: T, index: usize) -> T
     where
-        T: 'static + Clone,
+        T: 'static + Clone + Send,
     {
         let head = {
             let v = self.registers.read().expect("to read length of state");
@@ -49,12 +50,16 @@ impl State {
         // new state register
         if head == index {
             let mut state = self.registers.write().expect("to write value to state");
-            state.push(AnyBox::new(value));
+            state.push(Box::new(value) as Box<dyn Any + Send>);
         }
 
         // retrieve value from state
         let state = self.registers.read().expect("to read value from state");
-        state[index].get::<T>().clone()
+        state[index].downcast_ref::<T>().expect(&format!(
+            "state hook #{} to be of type {}",
+            index,
+            std::any::type_name::<T>()
+        )).clone()
     }
 }
 
@@ -71,7 +76,7 @@ struct Hooks {
 impl Hooks {
     fn use_state<T>(&mut self, value: T) -> (T, impl Fn(T))
     where
-        T: 'static + Clone,
+        T: 'static + Clone + Send,
     {
         // index is the currently active state register
         let index = self.counter;
@@ -96,7 +101,8 @@ impl Hooks {
                 .registers
                 .write()
                 .expect("to write updated value to state");
-            registers[index].put(value);
+
+            registers[index] = Box::new(value);
         };
 
         (value, set_value)

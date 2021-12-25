@@ -6,13 +6,8 @@ version = 3
 name = "act2"
 version = "0.1.0"
 dependencies = [
- "anybox",
  "lazy_static",
 ]
-
-[[package]]
-name = "anybox"
-version = "0.1.1"
 
 [[package]]
 name = "lazy_static"
