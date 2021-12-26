@@ -1,1 +1,1 @@
-mod hooks;
+mod hook;

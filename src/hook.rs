@@ -6,18 +6,18 @@ use std::sync::{Mutex, MutexGuard, RwLock};
 mod tests {
     #[test]
     fn recover_state() {
-        let mut hooks = super::Hooks::default();
-        let (_, _) = hooks.use_state("what");
-        let (_, _) = hooks.use_state(123);
-        let (_, _) = hooks.use_state(3.145);
-        let (_, _) = hooks.use_state(true);
+        let mut hook = super::Hook::default();
+        let (_, _) = hook.use_state("what");
+        let (_, _) = hook.use_state(123);
+        let (_, _) = hook.use_state(3.145);
+        let (_, _) = hook.use_state(true);
 
-        let mut hooks = super::Hooks::default();
+        let mut hook = super::Hook::default();
 
-        let (a, _) = hooks.use_state("no");
-        let (b, _) = hooks.use_state(1231);
-        let (c, _) = hooks.use_state(3.14325);
-        let (d, _) = hooks.use_state(false);
+        let (a, _) = hook.use_state("no");
+        let (b, _) = hook.use_state(1231);
+        let (c, _) = hook.use_state(3.14325);
+        let (d, _) = hook.use_state(false);
 
         assert_eq!(a, "what");
         assert_eq!(b, 123);
@@ -27,22 +27,22 @@ mod tests {
 
     #[test]
     fn set_state() {
-        let mut hooks = super::Hooks::default();
-        let (_, set_a) = hooks.use_state("what");
-        let (_, set_b) = hooks.use_state(123);
-        let (_, set_c) = hooks.use_state(3.145);
-        let (_, set_d) = hooks.use_state(true);
+        let mut hook = super::Hook::default();
+        let (_, set_a) = hook.use_state("what");
+        let (_, set_b) = hook.use_state(123);
+        let (_, set_c) = hook.use_state(3.145);
+        let (_, set_d) = hook.use_state(true);
         set_a("möp");
         set_b(314);
         set_c(0.0);
         set_d(false);
 
-        let mut hooks = super::Hooks::default();
+        let mut hook = super::Hook::default();
 
-        let (a, _) = hooks.use_state("what");
-        let (b, _) = hooks.use_state(123);
-        let (c, _) = hooks.use_state(3.145);
-        let (d, _) = hooks.use_state(true);
+        let (a, _) = hook.use_state("what");
+        let (b, _) = hook.use_state(123);
+        let (c, _) = hook.use_state(3.145);
+        let (d, _) = hook.use_state(true);
 
         assert_eq!(a, "möp");
         assert_eq!(b, 314);
@@ -118,7 +118,7 @@ impl State {
 }
 
 #[derive(Default)]
-struct Hooks {
+struct Hook {
     // TODO Reference counted [usize] might be a better fit in order to avoid cloning in set_value
     // closure
     /// points to State in global StateTree
@@ -127,7 +127,7 @@ struct Hooks {
     counter: usize,
 }
 
-impl Hooks {
+impl Hook {
     fn use_state<T>(&mut self, value: T) -> (T, impl Fn(T))
     where
         T: 'static + Clone + Send,
