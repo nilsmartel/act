@@ -106,11 +106,13 @@ impl State {
         let state = self.registers.read().expect("to read value from state");
         state[index]
             .downcast_ref::<T>()
-            .expect(&format!(
-                "state hook #{} to be of type {}",
-                index,
-                std::any::type_name::<T>()
-            ))
+            .unwrap_or_else(|| {
+                panic!(
+                    "state hook #{} to be of type {}",
+                    index,
+                    std::any::type_name::<T>()
+                )
+            })
             .clone()
     }
 }
